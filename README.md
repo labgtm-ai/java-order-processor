@@ -114,6 +114,35 @@ The following legacy coding practices are intentionally included for AI-driven m
 | Date API | Calendar | LocalDate / LocalDateTime |
 | Dependency Injection | Field Injection | Constructor Injection |
 
+# Legacy Patterns and Modernization Targets
+
+The application intentionally includes several legacy Java coding patterns that are commonly found in enterprise applications. These patterns provide meaningful modernization opportunities for the AI Agent.
+
+| Legacy Pattern | Introduced | Java 8 Modernization | Java 11 Modernization | Java 14 Modernization | Java 17 Modernization | Java 21 Modernization |
+|----------------|------------|----------------------|-----------------------|-----------------------|-----------------------|-----------------------|
+| Anonymous Inner Classes | Java 1.1 | Lambda Expressions | Lambda Expressions | Lambda Expressions | Lambda Expressions | Lambda Expressions |
+| Raw Collections | Before Java 5 | Generic Collections | Generic Collections | Generic Collections | Generic Collections | Generic Collections |
+| Hashtable | JDK 1.0 | HashMap | HashMap | HashMap | ConcurrentHashMap | ConcurrentHashMap |
+| Vector | JDK 1.0 | ArrayList | ArrayList | ArrayList | List Interface Improvements | Immutable Collections (`List.of()`) |
+| Enumeration | JDK 1.0 | Iterator | Iterator | Enhanced For Loop | Streams | Streams |
+| StringBuffer | JDK 1.0 | StringBuilder | StringBuilder | StringBuilder | String Formatting | String Templates (Preview) |
+| Calendar | JDK 1.1 | java.time API | java.time API | java.time API | java.time API | java.time API |
+| Date | JDK 1.0 | java.time API | java.time API | java.time API | java.time API | java.time API |
+| synchronized | JDK 1.0 | ExecutorService | ExecutorService | ExecutorService | CompletableFuture | Virtual Threads |
+| Thread | JDK 1.0 | ExecutorService | CompletableFuture | CompletableFuture | CompletableFuture | Virtual Threads |
+| Runnable | JDK 1.0 | Lambda Expressions | Lambda Expressions | Lambda Expressions | CompletableFuture | Virtual Threads |
+| Explicit Null Checks | Always | Optional | Optional | Optional | Optional | Pattern Matching (where applicable) |
+| Manual Loop-based Iteration | Always | Stream API | Stream API | Stream API | Stream API | Stream API |
+| switch Statement | Always | Traditional Switch | Traditional Switch | Switch Expressions | Enhanced Switch Expressions | Pattern Matching for Switch |
+| Mutable POJO | Always | Java Bean | Java Bean | Cleaner POJO | Immutable Classes | Records |
+| Callback Interfaces | Always | CompletableFuture | CompletableFuture | CompletableFuture | CompletableFuture | Structured Concurrency (Preview) |
+| Field Injection | Spring | Constructor Injection | Constructor Injection | Constructor Injection | Constructor Injection | Constructor Injection |
+| String Concatenation (`+`) | Always | StringBuilder | StringBuilder | StringBuilder | `String::formatted()` | String Templates (Preview) |
+| Raw Type Casting | Before Java 5 | Generic Collections | Generic Collections | Generic Collections | Generic Collections | Generic Collections |
+| Unchecked Casts | Before Java 5 | Safe Generics | Safe Generics | Safe Generics | Safe Generics | Safe Generics |
+| Blocking Calls (`Thread.sleep`) | JDK 1.0 | ExecutorService | CompletableFuture | CompletableFuture | CompletableFuture | Virtual Threads |
+
+> **Note:** The AI Agent applies only the transformations that are supported by the selected target Java version while preserving application behavior.
 ---
 
 # Legacy Pattern Location
