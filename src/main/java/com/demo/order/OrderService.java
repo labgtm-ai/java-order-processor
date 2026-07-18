@@ -1,13 +1,19 @@
 package com.demo.order;
 
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
+
+    // SRAO: Replaced System.out.println with SLF4J logger
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final List<Order> orders = new ArrayList<Order>();
 
@@ -36,18 +42,14 @@ public class OrderService {
             order.setStatus("NEW");
         }
 
-        // Legacy switch statement
+        // SRAO: Replaced traditional switch statement with switch expression (statement form)
         switch (order.getStatus()) {
-
-            case "NEW":
-                order.setStatus("PROCESSING");
-                break;
-
-            case "CANCELLED":
+            case "NEW" -> order.setStatus("PROCESSING");
+            case "CANCELLED" -> {
                 return;
-
-            default:
-                break;
+            }
+            default -> {
+            }
         }
 
         // Legacy callback style
@@ -59,16 +61,16 @@ public class OrderService {
 
                         orders.add(processedOrder);
 
-                        System.out.println(buildAuditMessage(processedOrder));
+                        // SRAO: Replaced System.out.println with SLF4J logger
+                        logger.info(buildAuditMessage(processedOrder));
 
                     }
 
                     @Override
                     public void onFailure(Exception exception) {
 
-                        System.out.println(
-                                "Processing failed : "
-                                        + exception.getMessage());
+                        // SRAO: Replaced System.out.println with SLF4J logger
+                        logger.error("Processing failed : {}", exception.getMessage(), exception);
 
                     }
 
@@ -81,14 +83,8 @@ public class OrderService {
      */
     public List<Order> getAllOrders() {
 
-        // Traditional loop
-        List<Order> result = new ArrayList<Order>();
-
-        for (int i = 0; i < orders.size(); i++) {
-            result.add(orders.get(i));
-        }
-
-        return result;
+        // SRAO: Replaced traditional for-loop with Stream API
+        return orders.stream().collect(Collectors.toList());
 
     }
 
@@ -101,15 +97,11 @@ public class OrderService {
             return null;
         }
 
-        for (Order order : orders) {
-
-            if (orderId.equals(order.getOrderId())) {
-                return order;
-            }
-
-        }
-
-        return null;
+        // SRAO: Replaced enhanced for-loop with Stream API
+        return orders.stream()
+                     .filter(order -> orderId.equals(order.getOrderId()))
+                     .findFirst()
+                     .orElse(null);
 
     }
 
@@ -157,7 +149,7 @@ public class OrderService {
      */
     private String buildAuditMessage(Order order) {
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder(); // SRAO: Replaced StringBuffer with StringBuilder for performance
 
         buffer.append("Order Id : ");
 

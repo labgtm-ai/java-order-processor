@@ -1,84 +1,73 @@
 package com.demo.order;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+import java.util.Optional;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 
 public class LegacyUtils {
+
+    // SRAO: Declared DateTimeFormatter as a static final field for efficiency and thread-safety.
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Legacy Vector usage.
      */
-    public Vector<Order> createOrderVector(List<Order> orders) {
-
-        Vector<Order> vector = new Vector<Order>();
-
-        if (orders != null) {
-
-            for (int i = 0; i < orders.size(); i++) {
-                vector.add(orders.get(i));
-            }
-
+    public List<Order> createOrderVector(List<Order> orders) { // SRAO: Replaced Vector with List for modern collection usage.
+        if (orders == null) {
+            return new ArrayList<>(); // SRAO: Replaced Vector with ArrayList.
         }
-
-        return vector;
+        return new ArrayList<>(orders);
     }
 
     /**
      * Legacy Hashtable usage.
      */
-    public Hashtable<Long, Order> createOrderTable(List<Order> orders) {
+    public HashMap<Long, Order> createOrderTable(List<Order> orders) {
 
-        Hashtable<Long, Order> table =
-                new Hashtable<Long, Order>();
-
-        if (orders != null) {
-
-            for (Order order : orders) {
-                table.put(order.getOrderId(), order);
-            }
-
+        // SRAO: Replaced Hashtable with HashMap for better performance and modern API usage.
+        if (orders == null) {
+            return new HashMap<>();
         }
-
-        return table;
+        // SRAO: Replaced for-loop with Stream API and Collectors.toMap for populating the map.
+        return orders.stream()
+                     .collect(Collectors.toMap(Order::getOrderId,
+                                               order -> order,
+                                               (existing, replacement) -> replacement,
+                                               HashMap::new));
     }
 
     /**
      * Legacy Enumeration iteration.
      */
-    public void printOrders(Vector<Order> orders) {
+    public void printOrders(List<Order> orders) { // SRAO: Replaced Vector with List for modern collection usage.
 
-        Enumeration<Order> enumeration = orders.elements();
-
-        while (enumeration.hasMoreElements()) {
-
-            Order order = enumeration.nextElement();
-
-            System.out.println(order);
-
+        // SRAO: Replaced Enumeration with enhanced for loop for modern iteration.
+        if (orders != null) {
+            // SRAO: Replaced enhanced for-loop with Stream API for iteration.
+            orders.stream().forEach(System.out::println);
         }
-
     }
 
     /**
      * Legacy Date formatting.
      */
     public String formatDate(Date date) {
-
-        if (date == null) {
-            return "";
-        }
-
-        SimpleDateFormat formatter =
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        return formatter.format(date);
-
+        // SRAO: Replaced SimpleDateFormat with DateTimeFormatter for modern date formatting.
+        return Optional.ofNullable(date)
+                       .map(d -> {
+                           LocalDateTime localDateTime = d.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                           // SRAO: Used the pre-defined static DateTimeFormatter for efficiency.
+                           return DATE_TIME_FORMATTER.format(localDateTime);
+                       })
+                       .orElse("");
     }
 
     /**
@@ -86,11 +75,9 @@ public class LegacyUtils {
      */
     public Date getNextProcessingDate() {
 
-        Calendar calendar = Calendar.getInstance();
-
-        calendar.add(Calendar.DATE, 2);
-
-        return calendar.getTime();
+        // SRAO: Replaced Calendar with LocalDate for modern date manipulation.
+        LocalDate futureDate = LocalDate.now().plusDays(2);
+        return Date.from(futureDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     }
 
@@ -113,11 +100,18 @@ public class LegacyUtils {
     /**
      * Unchecked cast example.
      */
-    @SuppressWarnings("unchecked")
     public List<Order> castOrders(Object object) {
+        // SRAO: Encapsulate the unchecked cast in a private helper method to limit the scope of the @SuppressWarnings annotation.
+        return uncheckedCastToListOfOrders(object);
+    }
 
+    @SuppressWarnings("unchecked")
+    private List<Order> uncheckedCastToListOfOrders(Object object) {
+        // SRAO: Add a runtime check for the raw List type to make the cast safer before performing the unchecked cast.
+        if (!(object instanceof List)) {
+            throw new ClassCastException("Object is not an instance of List and cannot be cast to List<Order>");
+        }
         return (List<Order>) object;
-
     }
 
 }

@@ -1,17 +1,20 @@
 package com.demo.order;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService; // SRAO: Replaced field injection with constructor injection.
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     /**
      * Returns all processed orders.
@@ -30,13 +33,10 @@ public class OrderController {
     public ResponseEntity<Order> getOrder(
             @PathVariable("orderId") Long orderId) {
 
-        Order order = orderService.getOrder(orderId);
-
-        if (order == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(order);
+        // SRAO: Replaced explicit null check with Optional for better null handling.
+        return Optional.ofNullable(orderService.getOrder(orderId))
+                       .map(ResponseEntity::ok)
+                       .orElseGet(() -> ResponseEntity.notFound().build());
 
     }
 
