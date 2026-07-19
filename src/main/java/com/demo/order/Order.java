@@ -93,15 +93,15 @@ public class Order implements Serializable {
             return true;
         }
 
-        if (obj == null) {
+        // SRAO: Replaced unchecked cast with pattern matching for instanceof for type safety and conciseness.
+        if (!(obj instanceof Order other)) {
             return false;
         }
 
-        if (getClass() != obj.getClass()) {
+        // Retain strict class equality check as per original implementation.
+        if (getClass() != other.getClass()) {
             return false;
         }
-
-        Order other = (Order) obj;
 
         if (orderId == null) {
             return other.orderId == null;
