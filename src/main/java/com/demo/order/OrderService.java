@@ -1,13 +1,20 @@
 package com.demo.order;
 
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
+
+    // SRAO: Replaced System.out.println with a logging framework for better control and flexibility.
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final List<Order> orders = new ArrayList<Order>();
 
@@ -29,25 +36,30 @@ public class OrderService {
 
         // Manual object initialization
         if (order.getOrderDate() == null) {
-            order.setOrderDate(new Date());
+            // SRAO: Replaced legacy Date instantiation with java.time.Instant and conversion to java.util.Date.
+            order.setOrderDate(Date.from(Instant.now()));
         }
 
         if (order.getStatus() == null) {
             order.setStatus("NEW");
         }
 
-        // Legacy switch statement
-        switch (order.getStatus()) {
+        // SRAO: Replaced traditional switch statement with a switch expression.
+        // Handle CANCELLED status early as it causes method exit.
+        if ("CANCELLED".equals(order.getStatus())) {
+            return;
+        }
 
-            case "NEW":
-                order.setStatus("PROCESSING");
-                break;
+        // Use a switch expression to determine the new status if applicable.
+        String statusToSet = switch (order.getStatus()) {
+            case "NEW" -> "PROCESSING";
+            // For other statuses (not NEW, not CANCELLED), the status remains unchanged.
+            default -> order.getStatus(); // Yield the current status
+        };
 
-            case "CANCELLED":
-                return;
-
-            default:
-                break;
+        // Only update status if it has actually changed.
+        if (!order.getStatus().equals(statusToSet)) {
+            order.setStatus(statusToSet);
         }
 
         // Legacy callback style
@@ -59,16 +71,14 @@ public class OrderService {
 
                         orders.add(processedOrder);
 
-                        System.out.println(buildAuditMessage(processedOrder));
+                        logger.info(buildAuditMessage(processedOrder));
 
                     }
 
                     @Override
                     public void onFailure(Exception exception) {
 
-                        System.out.println(
-                                "Processing failed : "
-                                        + exception.getMessage());
+                        logger.error("Processing failed : {}", exception.getMessage(), exception);
 
                     }
 
@@ -80,15 +90,8 @@ public class OrderService {
      * Return all orders.
      */
     public List<Order> getAllOrders() {
-
-        // Traditional loop
-        List<Order> result = new ArrayList<Order>();
-
-        for (int i = 0; i < orders.size(); i++) {
-            result.add(orders.get(i));
-        }
-
-        return result;
+        // SRAO: Replaced traditional for-loop with Stream API to create a modifiable list.
+        return orders.stream().collect(Collectors.toCollection(ArrayList::new));
 
     }
 
@@ -101,15 +104,11 @@ public class OrderService {
             return null;
         }
 
-        for (Order order : orders) {
-
-            if (orderId.equals(order.getOrderId())) {
-                return order;
-            }
-
-        }
-
-        return null;
+        // SRAO: Replaced traditional for-each loop with Stream API for finding an element.
+        return orders.stream()
+                     .filter(order -> orderId.equals(order.getOrderId()))
+                     .findFirst()
+                     .orElse(null);
 
     }
 
@@ -145,11 +144,22 @@ public class OrderService {
     /**
      * Unchecked cast example.
      */
-    @SuppressWarnings("unchecked")
     public List<Order> convert(Object object) {
+        // SRAO: Replaced unchecked cast with safe type checking using instanceof pattern matching and element-wise casting.
+        if (!(object instanceof List<?>)) {
+            throw new ClassCastException("Object cannot be cast to List");
+        }
 
-        return (List<Order>) object;
-
+        // SRAO: Replaced traditional for-each loop with Stream API for element-wise casting and collection.
+        return ((List<?>) object).stream()
+                                 .map(item -> {
+                                     if (item instanceof Order order) {
+                                         return order;
+                                     } else {
+                                         throw new ClassCastException("Element in list is not an Order: " + (item != null ? item.getClass().getName() : "null"));
+                                     }
+                                 })
+                                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -157,7 +167,8 @@ public class OrderService {
      */
     private String buildAuditMessage(Order order) {
 
-        StringBuffer buffer = new StringBuffer();
+        // SRAO: Replaced StringBuffer with StringBuilder for better performance in a non-thread-safe context.
+        StringBuilder buffer = new StringBuilder();
 
         buffer.append("Order Id : ");
 
@@ -184,7 +195,8 @@ public class OrderService {
 
         legacyUtils.createOrderTable(orders);
 
-        legacyUtils.formatDate(new Date());
+        // SRAO: Replaced legacy Date instantiation with java.time.Instant and conversion to java.util.Date.
+        legacyUtils.formatDate(Date.from(Instant.now()));
 
         legacyUtils.getNextProcessingDate();
 
